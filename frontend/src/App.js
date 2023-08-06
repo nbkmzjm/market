@@ -1,9 +1,16 @@
 import './App.css';
+import './sass/App.scss';
 import Product from './Product/Product.js';
 import data from './data';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import {
+   BrowserRouter,
+   Link,
+   Route,
+   Routes,
+   useNavigate,
+} from 'react-router-dom';
 import HomeScreen from './screens/HomeScreen';
 import ProductScreen from './screens/ProductScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
@@ -25,6 +32,7 @@ import OrderSummnaryScreen from './screens/OrderSummaryScreen';
 import OrderDetailScreen from './screens/OrderDetailScreeen';
 import { signOut } from 'firebase/auth';
 import { auth } from './config/firebase';
+import DashboardScreen from './screens/DashboardScreen';
 
 function App() {
    const { state, dispatch: ctxDispatch } = useContext(Store);
@@ -56,6 +64,9 @@ function App() {
                         <Navbar.Brand>MarketPlace</Navbar.Brand>
                      </LinkContainer>
                      <Nav className="me-auto">
+                        <Link to="/dashboard" className="nav-link">
+                           Dashboard
+                        </Link>
                         <Link to="/cart" className="nav-link">
                            Cart
                            {cart.cartItems.length > 0 && (
@@ -70,7 +81,7 @@ function App() {
 
                         {userInfo ? (
                            <NavDropdown
-                              title={userInfo.name}
+                              title={userInfo.displayName}
                               id="basic-nav-dropdown"
                            >
                               <LinkContainer to="/profile">
@@ -87,7 +98,7 @@ function App() {
                               <Link
                                  className="dropdown-item"
                                  onClick={signOutHandler}
-                                 to="#signout"
+                                 to="/"
                               >
                                  Sign Out
                               </Link>
@@ -110,6 +121,7 @@ function App() {
                      <Route path="/signin" element={<SigninScreen />} />
                      <Route path="/signup" element={<SignupScreen />} />
                      <Route path="/payment" element={<PaymentScreen />} />
+                     <Route path="/dashboard" element={<DashboardScreen />} />
                      <Route
                         path="/productEdit"
                         element={<ProductEditScreen />}

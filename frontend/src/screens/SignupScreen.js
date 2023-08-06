@@ -26,7 +26,7 @@ export default function SigninScreen() {
 
    const { state, dispatch: ctxDispatch } = useContext(Store);
    const { userInfo } = state;
-   const selectedHandler = (e) => {
+   const selectedRoleHandler = (e) => {
       setRole(e.target.value);
    };
 
@@ -38,7 +38,12 @@ export default function SigninScreen() {
             userCredential.user.displayName = name;
             const userRef = doc(db, 'users', userCredential.user.uid);
 
-            const userDetail = { address: '', role: role };
+            const userDetail = {
+               address: '',
+               role: role,
+               email: userCredential.user.email,
+               displayName: userCredential.user.displayName,
+            };
 
             await setDoc(userRef, userDetail).then(async () => {
                const userInfo = await getDoc(
@@ -130,7 +135,7 @@ export default function SigninScreen() {
                   onChange={(e) => setEmail(e.target.value)}
                ></Form.Control>
             </Form.Group>
-            <Form.Group controlId="role" onChange={selectedHandler}>
+            <Form.Group controlId="role" onChange={selectedRoleHandler}>
                <Form.Label>Select a role:</Form.Label>
                <Form.Select>
                   <option value="buyer">Buyer</option>

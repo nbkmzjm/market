@@ -78,7 +78,7 @@ export default function OrderDetailScreen() {
       };
 
       fetchData();
-   }, [order]);
+   }, [order++]);
 
    return (
       <div>

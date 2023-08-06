@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import CheckOutSteps from '../components/CheckOutSteps';
+import Form from 'react-bootstrap/esm/Form';
 import Row from 'react-bootstrap/esm/Row';
 import Col from 'react-bootstrap/esm/Col';
 import Card from 'react-bootstrap/esm/Card';
@@ -9,9 +10,20 @@ import { useContext, useEffect, useReducer, useState } from 'react';
 import { Store } from '../Store';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { addDoc, collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+   addDoc,
+   collection,
+   doc,
+   getDoc,
+   getDocs,
+   query,
+   setDoc,
+   where,
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
+import FormGroup from 'react-bootstrap/esm/FormGroup';
+import SupplierOptionMenu from '../components/SupplierOptionMenu';
 
 export default function OrderSummnaryScreen() {
    const navigate = useNavigate();
@@ -29,15 +41,28 @@ export default function OrderSummnaryScreen() {
       }
    };
 
-   const [{ loading, error, order }, dispatch] = useReducer(reducer, {
-      loading: false,
-      error: '',
-   });
+   const [{ loading, error, order, supplierList }, dispatch] = useReducer(
+      reducer,
+      {
+         loading: false,
+         error: '',
+      }
+   );
+
+   const defaultOption = {
+      id: 'LNiEKE3i77Pa2xt1cT1AQtNSxpz2',
+
+      displayName: 'Kim Tran',
+      email: 'kimtran@mkplace.com',
+      role: 'supplier',
+   };
 
    const { state, dispatch: ctxDispatch } = useContext(Store);
 
    const { cart, userInfo } = state;
    const paymentMethod = cart.paymentMethod;
+   const [suplier, setSupplier] = useState(defaultOption.id);
+   const [supplierOption, setSupplierOption] = useState([]);
 
    const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
    cart.itemsPrice = round2(
@@ -49,10 +74,35 @@ export default function OrderSummnaryScreen() {
    cart.itemsTotal = cart.itemsPrice + cart.itemsTax + cart.shippingCost;
 
    useEffect(() => {
+      const fetchData = async () => {
+         try {
+            const q = query(
+               collection(db, 'users'),
+               where('role', '==', 'supplier')
+            );
+            const resultedArray = [];
+            const querySnap = await getDocs(q);
+            querySnap.forEach((doc) => {
+               // doc.data() is never undefined for query doc snapshots
+               console.log(doc.id, ' => ', doc.data());
+               resultedArray.push({ id: doc.id, ...doc.data() });
+            });
+            console.log(resultedArray);
+            setSupplierOption(resultedArray);
+         } catch (error) {
+            toast.error(error);
+         }
+      };
+      fetchData();
       if (!paymentMethod) {
          navigate('/payment');
       }
-   });
+   }, []);
+
+   const selectedHandler = (e) => {
+      setSupplier(e.target.value);
+      console.log(e.target.value);
+   };
 
    const placeOrderHandler = async () => {
       try {
@@ -70,6 +120,7 @@ export default function OrderSummnaryScreen() {
             orderTotal: cart.itemsTotal,
             Tax: cart.itemsTax,
             shippingCost: cart.shippingCost,
+            supplier: suplier,
          };
          const docRef = await addDoc(collection(db, 'order'), data);
          const docSnap = await getDoc(docRef);
@@ -151,6 +202,22 @@ export default function OrderSummnaryScreen() {
                         </Card.Body>
                      </Card>
                   </Row>
+                  <div className="row">
+                     <Form.Group controlId="role" onChange={selectedHandler}>
+                        <Form.Label>Select Supplier:</Form.Label>
+                        {/* <Form.Select>
+                           {supplierOption.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                 {option.displayName}
+                              </option>
+                           ))}
+                        </Form.Select> */}
+                        <SupplierOptionMenu
+                           selectedOption={defaultOption}
+                           options={supplierOption}
+                        />
+                     </Form.Group>
+                  </div>
                   <br />
                   <Row>
                      <Card className="mb-3">
