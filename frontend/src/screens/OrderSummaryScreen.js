@@ -17,6 +17,7 @@ import {
    getDoc,
    getDocs,
    query,
+   runTransaction,
    setDoc,
    where,
 } from 'firebase/firestore';
@@ -24,6 +25,7 @@ import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
 import FormGroup from 'react-bootstrap/esm/FormGroup';
 import SupplierOptionMenu from '../components/SupplierOptionMenu';
+import { generateOrderID } from '../utils';
 
 export default function OrderSummnaryScreen() {
    const navigate = useNavigate();
@@ -107,54 +109,84 @@ export default function OrderSummnaryScreen() {
    const placeOrderHandler = async () => {
       try {
          dispatch({ type: 'CREATE_REQUEST' });
+         const orderId = generateOrderID(1000, 9999);
+         await runTransaction(db, async (transaction) => {
+            const data = {
+               // orderItems: cart.cartItems,
+               shippingAddress: cart.shippingAddress,
+               paymentMethod: cart.paymentMethod,
+               isPaid: false,
+               isDelivered: false,
+               userId: userInfo.uid,
 
-         const data = {
-            // orderItems: cart.cartItems,
-            shippingAddress: cart.shippingAddress,
-            paymentMethod: cart.paymentMethod,
-            isPaid: false,
-            isDelivered: false,
-            userId: userInfo.uid,
+               itemsPrice: cart.itemsPrice,
+               orderTotal: cart.itemsTotal,
+               tax: cart.itemsTax,
+               shippingCost: cart.shippingCost,
+               supplier: suplier,
+            };
 
-            itemsPrice: cart.itemsPrice,
-            orderTotal: cart.itemsTotal,
-            Tax: cart.itemsTax,
-            shippingCost: cart.shippingCost,
-            supplier: suplier,
-         };
-         const docRef = await addDoc(collection(db, 'order'), data);
-         const docSnap = await getDoc(docRef);
+            transaction.set(doc(db, 'order', orderId), data, {
+               transaction,
+            });
 
-         if (docSnap.exists()) {
-            // const result = docSnap.data();
-            // result.id = docSnap.id;
-            console.log(docSnap.id);
-
-            const parentDocRef = doc(db, 'order', docSnap.id);
-            const subDocRef = collection(parentDocRef, 'orderItems');
             try {
                const promises = cart.cartItems.map(async (item) => {
-                  const newItem = doc(subDocRef, item.id);
+                  const itemOrderId = generateOrderID(10000, 99999);
                   console.log(item);
-
-                  //ad item without ID
-                  // const result = await addDoc(subDocRef, data)
-                  // throw new Error('order item fail to added');
-                  await setDoc(newItem, { ...item });
-                  console.log('adding item');
+                  const orderitemRef = doc(db, 'orderItems', itemOrderId);
+                  const orderItemData = {
+                     ...item,
+                     customerId: userInfo.uid,
+                     supplierId: suplier,
+                     orderId: orderId,
+                     itemId: item.id,
+                  };
+                  await setDoc(orderitemRef, orderItemData);
                });
-
                await Promise.all(promises);
-               console.log('All item added success');
-               ctxDispatch({
-                  type: 'ORDER_CREATED',
-                  payload: docSnap.id,
-               });
-               navigate(`/orderDetail/${docSnap.id}`);
             } catch (error) {
-               console.error('error occured during adding item', error);
+               console.log(error, ': all item is not added');
             }
-         }
+         });
+         console.log('All item added success');
+         ctxDispatch({
+            type: 'ORDER_CREATED',
+            payload: orderId,
+         });
+         navigate(`/orderDetail/${orderId}`);
+         // Adding items in the subcollection
+
+         // if (docSnap.exists()) {
+         //    // const result = docSnap.data();
+         //    // result.id = docSnap.id;
+         //    console.log(docSnap.id);
+
+         //    const parentDocRef = doc(db, 'order', docSnap.id);
+         //    const subDocRef = collection(parentDocRef, 'orderItems');
+         //    try {
+         //       const promises = cart.cartItems.map(async (item) => {
+         //          const newItemRef = doc(subDocRef, item.id);
+         //          console.log(item);
+
+         //          //ad item without ID
+         //          // const result = await addDoc(subDocRef, data)
+         //          // throw new Error('order item fail to added');
+         //          await setDoc(newItemRef, { ...item });
+         //          console.log('adding item');
+         //       });
+
+         //       await Promise.all(promises);
+         //       console.log('All item added success');
+         //       ctxDispatch({
+         //          type: 'ORDER_CREATED',
+         //          payload: docSnap.id,
+         //       });
+         //       navigate(`/orderDetail/${docSnap.id}`);
+         //    } catch (error) {
+         //       console.error('error occured during adding item', error);
+         //    }
+         // }
       } catch (error) {
          // dispatch({ type: 'CREATE_FAIL', payload: error });
          toast.error(error);

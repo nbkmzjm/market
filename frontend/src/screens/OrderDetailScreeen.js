@@ -6,7 +6,14 @@ import ListGroup from 'react-bootstrap/esm/ListGroup';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { Store } from '../Store';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import {
+   collection,
+   doc,
+   getDoc,
+   getDocs,
+   query,
+   where,
+} from 'firebase/firestore';
 import LoadingBox from '../components/LoadingBox';
 import { getError } from '../utils';
 import { db } from '../config/firebase';
@@ -56,17 +63,29 @@ export default function OrderDetailScreen() {
                console.log(orderDetail);
 
                const orderItems = [];
-               const querySnapshot = await getDocs(
-                  collection(db, 'order', orderId, 'orderItems')
-               );
-               querySnapshot.forEach((doc) => {
-                  orderItems.push(doc.data());
-                  console.log(doc.id, ' => ', doc.data());
-               });
-               orderDetail.items = orderItems;
-               dispatch({ type: 'FETCH_SUCCESS', payload: orderDetail });
 
-               console.log(orderDetail);
+               //getting order items from top level collection
+               const q = await query(
+                  collection(db, 'orderItems'),
+                  where('orderId', '==', orderId)
+               );
+               try {
+                  const querySnapshot = await getDocs(q);
+                  querySnapshot.forEach((doc) => {
+                     orderItems.push(doc.data());
+                     console.log(doc.id, ' => ', doc.data());
+                  });
+                  orderDetail.items = orderItems;
+                  dispatch({ type: 'FETCH_SUCCESS', payload: orderDetail });
+                  console.log(orderDetail);
+               } catch (error) {
+                  console.log('Can not fetch items for this order:', error);
+               }
+
+               //geting order items from subcollection
+               // const querySnapshot = await getDocs(
+               //    collection(db, 'order', orderId, 'orderItems')
+               // );
             } else {
                console.log('Order do not exist');
             }
@@ -78,7 +97,7 @@ export default function OrderDetailScreen() {
       };
 
       fetchData();
-   }, [order++]);
+   }, []);
 
    return (
       <div>
@@ -87,41 +106,135 @@ export default function OrderDetailScreen() {
          </Helmet> */}
          <h1>Order Detail</h1>
          {console.log('render')}
-         {console.log(order.orderTotal)}
+         {console.log(order)}
+
          <div>
             {loading ? (
                <LoadingBox></LoadingBox>
             ) : error ? (
                <MessageBox>{error}</MessageBox>
             ) : (
-               <Row>
-                  {console.log(order, 'render div')}
-                  Detail here: {order.orderTotal}
-                  {/* {console.log(order.shippingAddress)} */}
-                  {/* {order} */}
-                  <Col md={8}>
-                     <Card.Body>
-                        <Card.Title>Shipping Information</Card.Title>
-                        <Card.Text>
-                           <strong>Name:</strong>
-                           {order.shippingAddress != null ||
-                           typeof order.shippingAddress != 'undefined'
-                              ? order.shippingAddress.address
-                              : ''}
-
-                           {/* // Object.entries(order.shippingAddress).map(
-                                //      ([key, value]) => (
-                                //         <p key={key}>
-                                //            XXXX:
-                                //            {key}: {value}
-                                //         </p>
-                                //      )
-                                //   ) */}
-                        </Card.Text>
-                     </Card.Body>
-                  </Col>
-                  <Col md={4}></Col>
-               </Row>
+               <div>
+                  <div className="row">
+                     <div className="col-4">
+                        <div className="card">
+                           <div className="card-body">
+                              <div className="card-title">
+                                 <h5>Shipping Information</h5>
+                              </div>
+                              {order.shippingAddress && (
+                                 <div className="card-text">
+                                    {' '}
+                                    <p>
+                                       {order.shippingAddress.fullName.toUpperCase()}
+                                       <br />
+                                       {order.shippingAddress.address}
+                                       <br />
+                                       {order.shippingAddress.city}{' '}
+                                       {order.shippingAddress.stateAdd}{' '}
+                                       {order.shippingAddress.postalCode}{' '}
+                                    </p>
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                     </div>
+                     <div className="col-4">
+                        <div className="card">
+                           <div className="card-body">
+                              <div className="card-title">
+                                 <h5>Payment Information</h5>
+                              </div>
+                              {order.shippingAddress && (
+                                 <div className="card-text">
+                                    <p>Payment Method: {order.paymentMethod}</p>
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                     </div>
+                     <div className="col-4">
+                        <div className="card">
+                           <div className="card-body">
+                              <div className="card-title">
+                                 <h5>Order Summary</h5>
+                              </div>
+                              <div className="card-text">
+                                 <ul className="list-group list-group-flush">
+                                    <li className="list-group-item">
+                                       Sub Total: ${order.itemsPrice}
+                                    </li>
+                                    <li className="list-group-item">
+                                       Tax: ${order.tax}
+                                    </li>
+                                    <li className="list-group-item">
+                                       Shipping Cost: ${order.shippingCost}
+                                    </li>
+                                    <li className="list-group-item">
+                                       <strong>
+                                          {' '}
+                                          Order Total: ${order.orderTotal}
+                                       </strong>
+                                    </li>
+                                 </ul>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <row>
+                     <div className="col-12 mt-3">
+                        <div className="card">
+                           {' '}
+                           <div className="card-header">
+                              <h5 class="">Order Summary</h5>
+                           </div>
+                           <div className="card-body">
+                              <ul className="list-group list-group-flush">
+                                 <li className="list-group-item">
+                                    <div className="row">
+                                       <div className="col-3"></div>
+                                       <div className="col-5">Product</div>
+                                       <div className="col-2">Quantity</div>
+                                       <div className="col-2">Total Price</div>
+                                    </div>
+                                 </li>
+                                 {order.items &&
+                                    order.items.map((item) => (
+                                       <li
+                                          key={item.id}
+                                          className="list-group-item"
+                                       >
+                                          <div className="row">
+                                             <div className="col-2">
+                                                <img
+                                                   src={item.image}
+                                                   alt={item.name}
+                                                   className="img-fluid rounded img-thumbnail"
+                                                ></img>{' '}
+                                             </div>
+                                             <div className="col-6">
+                                                <Link
+                                                   to={`/product/${item.slug}`}
+                                                >
+                                                   {item.name}
+                                                </Link>
+                                             </div>
+                                             <div className="col-2">
+                                                {item.quantity}
+                                             </div>
+                                             <div className="col-2">
+                                                ${item.price}
+                                             </div>
+                                          </div>
+                                       </li>
+                                    ))}
+                              </ul>
+                           </div>
+                        </div>
+                     </div>
+                  </row>
+               </div>
             )}
          </div>
       </div>
