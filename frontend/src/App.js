@@ -33,6 +33,7 @@ import OrderDetailScreen from './screens/OrderDetailScreeen';
 import { signOut } from 'firebase/auth';
 import { auth } from './config/firebase';
 import DashboardScreen from './screens/DashboardScreen';
+import ProductTemplateScreens from './screens/ProductTemplateScreen';
 
 function App() {
    const { state, dispatch: ctxDispatch } = useContext(Store);
@@ -94,6 +95,11 @@ function App() {
                                     Order History
                                  </NavDropdown.Item>
                               </LinkContainer>
+                              <LinkContainer to="/productTemplate">
+                                 <NavDropdown.Item>
+                                    Product Template
+                                 </NavDropdown.Item>
+                              </LinkContainer>
                               <NavDropdown.Divider />
                               <Link
                                  className="dropdown-item"
@@ -134,6 +140,10 @@ function App() {
                      <Route
                         path="/orderSummary"
                         element={<OrderSummnaryScreen />}
+                     />
+                     <Route
+                        path="/productTemplate"
+                        element={<ProductTemplateScreens />}
                      />
                      <Route
                         path="/orderDetail/:Id"

@@ -210,6 +210,8 @@ export default function OrderDetailScreen() {
                                                 <img
                                                    src={item.image}
                                                    alt={item.name}
+                                                   height="100"
+                                                   width="100"
                                                    className="img-fluid rounded img-thumbnail"
                                                 ></img>{' '}
                                              </div>
