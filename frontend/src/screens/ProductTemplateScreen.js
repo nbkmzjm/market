@@ -74,14 +74,14 @@ export default function ProductTemplateScreens() {
                </div>
                <div className="card-body">
                   <ul className="list-group list-group-flush">
-                     <li className="list-group-item">
+                     {/* <li className="list-group-item">
                         <div className="row">
                            <div className="col-2"></div>
                            <div className="col-6">Product</div>
                            <div className="col-2">Quantity</div>
                            <div className="col-2">Total Price</div>
                         </div>
-                     </li>
+                     </li> */}
                      {products.map((product) => (
                         <li key={product.id} className="list-group-item">
                            <div className="row">
