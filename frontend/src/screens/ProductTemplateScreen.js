@@ -20,8 +20,7 @@ export default function ProductTemplateScreens() {
    const [products, setProducts] = useState([]);
    const [product, setProduct] = useState({});
    const [showModal, setShowModal] = useState(false);
-   console.log('ini');
-   console.log(products);
+   console.log('ini', products);
 
    // const [productAdded, setProductAdded] = useState([]);
 
@@ -63,35 +62,78 @@ export default function ProductTemplateScreens() {
          const productArray = [];
          const querySnapshot = await getDocs(collection(db, 'product'));
          if (!querySnapshot.empty) {
-            querySnapshot.forEach(async (doc) => {
-               const productx = { ...doc.data(), id: doc.id };
-               console.log('productx', productx);
-               productArray.push(productx);
-               // const productAddedRef = collection(db, 'retailProduct');
+            async function fetchData(array) {
+               console.log(array);
+               await array.forEach(async (doc) => {
+                  try {
+                     const productx = { ...doc.data(), id: doc.id };
+                     console.log('productx', productx);
+                     productArray.push(productx);
 
-               // const q = query(
-               //    productAddedRef,
-               //    where('templateId', '==', productx.id),
-               //    where('supplierId', '==', state.userInfo.uid)
-               // );
+                     const fetchProductAdded = async () => {
+                        const productAddedRef = collection(db, 'retailProduct');
+                        const q = query(
+                           productAddedRef,
+                           where('templateId', '==', productx.id),
+                           where('supplierId', '==', state.userInfo.uid)
+                        );
 
-               // const productAdded = await getDocs(q);
-               // console.log(
-               //    'product added:',
-               //    productAdded.empty,
-               //    'product:',
-               //    productx
-               // );
-               // if (productAdded.empty) {
+                        const productAdded = await getDocs(q);
+                        console.log(
+                           'product added:',
+                           productAdded.empty,
+                           'product:',
+                           products
+                        );
+                        // if (productAdded.empty) {
+                        // productArray.push(productx);
+                        // }
+                     };
 
-               // }
+                     fetchProductAdded();
+                  } catch (error) {
+                     console.error(`Error fetching data for ${doc}:`, error);
+                  }
+               });
+               setProducts(productArray);
+            }
 
-               // if (!productAdded.includes(product.id)) {
-               //    productArray.push(product);
-               // }
-            });
-            console.log('product array', productArray);
-            setProducts(productArray);
+            fetchData(querySnapshot);
+
+            // querySnapshot.forEach(async (doc) => {
+            //    const productx = { ...doc.data(), id: doc.id };
+            //    console.log('productx', productx);
+            //    // productArray.push(productx);
+
+            //    const fetchProductAdded = async () => {
+            //       const productAddedRef = collection(db, 'retailProduct');
+            //       const q = query(
+            //          productAddedRef,
+            //          where('templateId', '==', productx.id),
+            //          where('supplierId', '==', state.userInfo.uid)
+            //       );
+
+            //       const productAdded = await getDocs(q);
+            //       if (productAdded.empty) {
+            //          productArray.push(productx);
+            //       }
+            //    };
+
+            //    fetchProductAdded();
+
+            //    // console.log(
+            //    //    'product added:',
+            //    //    productAdded.empty,
+            //    //    'product:',
+            //    //    productx
+            //    // );
+
+            //    // if (!productAdded.includes(product.id)) {
+            //    //    productArray.push(productx);
+            //    // }
+            // });
+            // console.log('product array', productArray);
+            // setProducts(productArray);
          }
       };
 
@@ -158,47 +200,43 @@ export default function ProductTemplateScreens() {
                         </div>
                      </li> */}
                      {console.log('products', products)}
-                     {products.map(
-                        (product) => (
-                           console.log('productxxxx', product),
-                           (
-                              <li key={product.id} className="list-group-item">
-                                 <div className="row">
-                                    <div className="col-2">
-                                       <img
-                                          src={product.image}
-                                          alt={product.name}
-                                          height="100"
-                                          width="100"
-                                          className="img-fluid rounded img-thumbnail"
-                                       ></img>{' '}
-                                    </div>
-                                    <div className="col-6">{product.name}</div>
-                                    <div className="col-2">
-                                       <Button
-                                          variant="primary"
-                                          onClick={() =>
-                                             editProductHandler(product.id)
-                                          }
-                                       >
-                                          Edit
-                                       </Button>
-                                    </div>
-                                    <div className="col-2">
-                                       <Button
-                                          variant="primary"
-                                          onClick={() =>
-                                             addToStoreHandler(product.id)
-                                          }
-                                       >
-                                          Add to Store
-                                       </Button>
-                                    </div>
-                                 </div>
-                              </li>
-                           )
-                        )
-                     )}
+                     {products.map((product) => (
+                        <li key={product.id} className="list-group-item">
+                           {console.log('productyyy', product)}
+                           <div className="row">
+                              <div className="col-2">
+                                 <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    height="100"
+                                    width="100"
+                                    className="img-fluid rounded img-thumbnail"
+                                 ></img>{' '}
+                              </div>
+                              <div className="col-6">{product.name}</div>
+                              <div className="col-2">
+                                 <Button
+                                    variant="primary"
+                                    onClick={() =>
+                                       editProductHandler(product.id)
+                                    }
+                                 >
+                                    Edit
+                                 </Button>
+                              </div>
+                              <div className="col-2">
+                                 <Button
+                                    variant="primary"
+                                    onClick={() =>
+                                       addToStoreHandler(product.id)
+                                    }
+                                 >
+                                    Add to Store
+                                 </Button>
+                              </div>
+                           </div>
+                        </li>
+                     ))}
                   </ul>
                </div>
             </div>
