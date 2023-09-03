@@ -19,28 +19,45 @@ export default function SigninScreen() {
    const redirectinUrl = new URLSearchParams(search).get('redirect');
    const redirect = redirectinUrl ? redirectinUrl : '/';
 
-   const [name, setName] = useState();
-   const [email, setEmail] = useState();
-   const [password, setPassword] = useState();
-   const [role, setRole] = useState('buyer');
+   const [newUser, setNewUser] = useState({
+      displayName: '',
+      email: '',
+      password: '',
+      accountType: '',
+   });
+   console.log(newUser);
+
+   const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setNewUser((prevData) => ({
+         ...prevData,
+         [name]: value,
+      }));
+   };
+
+   // const [name, setName] = useState();
+   // const [email, setEmail] = useState();
+   // const [password, setPassword] = useState();
+   // const [role, setRole] = useState('buyer');
 
    const { state, dispatch: ctxDispatch } = useContext(Store);
    const { userInfo } = state;
-   const selectedRoleHandler = (e) => {
-      setRole(e.target.value);
-   };
 
-   const onSubmitHandler = async (e) => {
+   const submitHandler = async (e) => {
       e.preventDefault();
 
-      await createUserWithEmailAndPassword(auth, email, password)
+      await createUserWithEmailAndPassword(
+         auth,
+         newUser.email,
+         newUser.password
+      )
          .then(async (userCredential) => {
-            userCredential.user.displayName = name;
+            userCredential.user.displayName = newUser.displayName;
             const userRef = doc(db, 'users', userCredential.user.uid);
 
             const userDetail = {
                address: '',
-               role: role,
+               accountType: newUser.accountType,
                email: userCredential.user.email,
                displayName: userCredential.user.displayName,
             };
@@ -69,22 +86,6 @@ export default function SigninScreen() {
          .catch((err) => {
             toast.error(getError(err));
          });
-      // console.log('pass:' + password);
-      // try {
-      //    const { data } = await Axios.post('/api/users/signup', {
-      //       name,
-      //       email,
-      //       password,
-      //    });
-      //    console.log(data);
-
-      // ctxDispatch({ type: 'USER_SIGNIN', payload: data });
-      // localStorage.setItem('userInfo', JSON.stringify(data));
-      //    navigate('/signin');
-      // } catch (err) {
-      //    toast.error(getError(err));
-
-      // }
    };
 
    useEffect(() => {
@@ -92,9 +93,9 @@ export default function SigninScreen() {
       const userExisted = async () => {
          const querySnap = await getDocs(collection(db, 'users'));
          if (querySnap.empty) {
-            setRole('admin');
+            // setRole('admin');
 
-            const element = document.getElementById('role');
+            const element = document.getElementById('accountType');
             if (element) {
                console.log(element);
                const newOption = document.createElement('option');
@@ -118,7 +119,73 @@ export default function SigninScreen() {
             <title>Sign Up</title>
          </Helmet>
          <h1 className="my-3">Sign Up</h1>
-         <Form onSubmit={onSubmitHandler}>
+
+         <div className="form-floating mb-3">
+            <input
+               className="form-control"
+               type="text"
+               id="floatingDisplayName"
+               name="displayName"
+               value={newUser.firstName}
+               onChange={handleInputChange}
+               placeholder="x"
+               required
+            />
+            <label for="floatingDisplayName">Display Name</label>
+         </div>
+         <div className="form-floating">
+            {' '}
+            <input
+               className="form-control mb-3"
+               type="email"
+               id="floatingEmail"
+               name="email"
+               value={newUser.email}
+               onChange={handleInputChange}
+               placeholder="x"
+               required
+            />
+            <label for="floatingEmail">Email</label>
+         </div>
+         <div className="form-floating mb-3">
+            {' '}
+            <input
+               className="form-control"
+               type="password"
+               id="floatingPassword"
+               name="password"
+               value={newUser.password}
+               onChange={handleInputChange}
+               placeholder="x"
+               required
+            />
+            <label for="floatingPassword">Password</label>
+         </div>
+
+         <select
+            class="form-select mb-3"
+            onChange={handleInputChange}
+            aria-label="Default select example"
+            name="accountType"
+         >
+            <option selected>Select Account Type</option>
+            <option value="supplier">Supplier</option>
+            <option value="comsumer">Consumer</option>
+         </select>
+
+         <div className="mb-3">
+            Log In to account isntead!
+            <Link to={'/signin'}>Log-In</Link>
+         </div>
+
+         <button
+            className="btn btn-primary"
+            onClick={submitHandler}
+            type="submit"
+         >
+            Sign Up
+         </button>
+         {/* <Form onSubmit={onSubmitHandler}>
             <Form.Group className="mb-3" controlId="name">
                <Form.Label>Name</Form.Label>
                <Form.Control
@@ -130,7 +197,7 @@ export default function SigninScreen() {
             <Form.Group className="mb-3" controlId="email">
                <Form.Label>Email</Form.Label>
                <Form.Control
-                  type="email"
+                  type="email"   
                   required
                   onChange={(e) => setEmail(e.target.value)}
                ></Form.Control>
@@ -159,7 +226,7 @@ export default function SigninScreen() {
                Log In to account isntead!
                <Link to={'/signin'}>Log-In</Link>
             </div>
-         </Form>
+         </Form> */}
       </Container>
    );
 }

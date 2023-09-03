@@ -34,6 +34,8 @@ import { signOut } from 'firebase/auth';
 import { auth } from './config/firebase';
 import DashboardScreen from './screens/DashboardScreen';
 import ProductTemplateScreens from './screens/ProductTemplateScreen';
+import UserProfileScreen from './screens/UserProfileScreen';
+import TestScreen from './screens/TestScreen';
 
 function App() {
    const { state, dispatch: ctxDispatch } = useContext(Store);
@@ -68,6 +70,9 @@ function App() {
                         <Link to="/dashboard" className="nav-link">
                            Dashboard
                         </Link>
+                        <Link to="/test" className="nav-link">
+                           Test
+                        </Link>
                         <Link to="/cart" className="nav-link">
                            Cart
                            {cart.cartItems.length > 0 && (
@@ -85,7 +90,7 @@ function App() {
                               title={userInfo.displayName}
                               id="basic-nav-dropdown"
                            >
-                              <LinkContainer to="/profile">
+                              <LinkContainer to="/userProfile">
                                  <NavDropdown.Item>
                                     User Profile
                                  </NavDropdown.Item>
@@ -123,11 +128,17 @@ function App() {
                   <Routes>
                      <Route path="/" element={<HomeScreen />}></Route>
                      <Route path="/product/:slug" element={<ProductScreen />} />
+                     <Route path="/test" element={<TestScreen />} />
                      <Route path="/cart" element={<CartScreen />} />
                      <Route path="/signin" element={<SigninScreen />} />
                      <Route path="/signup" element={<SignupScreen />} />
                      <Route path="/payment" element={<PaymentScreen />} />
                      <Route path="/dashboard" element={<DashboardScreen />} />
+                     <Route
+                        path="/userProfile"
+                        element={<UserProfileScreen />}
+                     />
+
                      <Route
                         path="/productEdit"
                         element={<ProductEditScreen />}
