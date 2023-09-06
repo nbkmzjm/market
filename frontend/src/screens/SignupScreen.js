@@ -73,7 +73,7 @@ export default function SigninScreen() {
               account: {
                 accountId: account.id,
                 accountType: newUser.accountType,
-                defaultSupplier: '',
+                defaultSuppllier: '',
               },
             };
             await setDoc(userRef, userDetail).then(async () => {
