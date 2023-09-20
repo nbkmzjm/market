@@ -8,7 +8,14 @@ import { useContext } from 'react';
 import axios from 'axios';
 import { Store } from '../Store';
 import Badge from 'react-bootstrap/esm/Badge';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+   collection,
+   doc,
+   getDoc,
+   getDocs,
+   query,
+   where,
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
 
@@ -57,34 +64,62 @@ export default function Product(props) {
    // };
 
    const addToCardHandler = async () => {
-      console.log('cart');
+      console.log('adding to cart');
       console.log(product);
-      const existItem = cart.cartItems.find((x) => x.id === product.id);
+
+      const existItem = cart.cartItems.find(
+         (x) => x.templateId === product.templateId
+      );
 
       const quantity = existItem ? existItem.quantity + 1 : 1;
-      const productRef = doc(db, 'product', product.id);
-      // const { data } = await axios.get(`/api/products/${product._id}`);
-      console.log(product);
-      const docSnap = await getDoc(productRef);
-      if (docSnap.exists()) {
-         if (docSnap.data().countInStock < quantity) {
+      const q = query(
+         collection(db, 'retailProduct'),
+         where('templateId', '==', product.templateId),
+         where('supplierId', '==', state.userInfo.account.defaultSupplier.id)
+      );
+      // const productRef = await getDocs(q);
+      // // const { data } = await axios.get(`/api/products/${product._id}`);
+      // console.log('product:', product);
+      // const docSnap = await getDoc(productRef);
+      // if (docSnap.exists()) {
+      //    if (docSnap.data().countInStock < quantity) {
+      //       toast('Sorry. Product is out of stock');
+      //       return;
+      //    }
+      // } else {
+      //    toast.error('No such document');
+      // }
+
+      // ctxDispatch({
+      //    type: 'CARD_ADD_ITEM',
+      //    payload: { ...product, quantity: quantity },
+      // });
+      // navigate('/cart');
+
+      const docSnap = await getDocs(q);
+      console.log(state.userInfo.account.accountId);
+      console.log(docSnap);
+
+      if (docSnap.size === 1) {
+         if (docSnap.docs[0].data().countInStock < quantity) {
             toast('Sorry. Product is out of stock');
             return;
          }
       } else {
-         toast.error('No such document');
+         toast.error('Number of document retuned is incorrect');
       }
 
       ctxDispatch({
          type: 'CARD_ADD_ITEM',
          payload: { ...product, quantity: quantity },
       });
+
       navigate('/cart');
    };
 
    return (
       <Card>
-         <Link to={`/product/${product.slug}`}>
+         <Link to={`/product/${product.slug}~${product.accountId}`}>
             <img
                src={product.image}
                className="card-img-top"
@@ -93,7 +128,7 @@ export default function Product(props) {
          </Link>
 
          <Card.Body>
-            <Link to={`/product/${product.slug}`}>
+            <Link to={`/product/${product.slug}~${product.supplierId}`}>
                <Card.Title>{product.name}</Card.Title>
             </Link>
             <Rating

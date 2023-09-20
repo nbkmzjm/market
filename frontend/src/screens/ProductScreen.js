@@ -5,7 +5,7 @@ import Badge from 'react-bootstrap/Badge';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
-import { useReducer, useEffect, useContext } from 'react';
+import { useReducer, useEffect, useContext, useState } from 'react';
 import axios from 'axios';
 import Rating from '../Product/Rating';
 import { Helmet } from 'react-helmet-async';
@@ -20,6 +20,8 @@ import {
    query,
    doc,
    getDoc,
+   setDoc,
+   addDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
@@ -39,9 +41,14 @@ export default function ProdcutScreen() {
    const navigate = useNavigate();
    const params = useParams();
    const { slug } = params;
+   const { state, dispatch: ctxDispatch } = useContext(Store);
+   const { userInfo, cart } = state;
    console.log(slug);
+   console.log('cart:', cart);
+   const slugArray = slug.split('~');
 
-   const productRef = collection(db, 'product');
+   const accountId = state.useInfo.account.accountId;
+   const supplierAccountId = slugArray[1];
 
    const [{ loading, error, product }, dispatch] = useReducer(reducer, {
       product: [],
@@ -52,16 +59,20 @@ export default function ProdcutScreen() {
    useEffect(() => {
       console.log('effect run');
       const fetchData = async () => {
+         console.log(slugArray[1]);
          dispatch({ type: 'FETCH_REQUEST' });
          try {
             // const result = await axios.get(`/api/products/slug/${slug}`);
 
-            const q = query(productRef, where('slug', '==', slug));
+            const q = query(
+               collection(db, 'accounts', supplierAccountId, 'accountProducts'),
+               where('slug', '==', slugArray[0])
+            );
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.size === 1) {
                const result = querySnapshot.docs[0].data();
-               result.id = querySnapshot.docs[0].id;
+
                console.log(result);
                console.log(querySnapshot.docs[0].id);
                dispatch({ type: 'FETCH_SUCCESS', payload: result });
@@ -75,32 +86,60 @@ export default function ProdcutScreen() {
       fetchData();
    }, [slug]);
 
-   const { state, dispatch: ctxDispatch } = useContext(Store);
-   const { cart } = state;
+   // useEffect(() => {
+   //    const fetchCartData = async () => {
+   //       const cartData = [];
+   //       const cartRef = collection(
+   //          db,
+   //          'accounts',
+   //          userInfo.account.accountId,
+   //          'cart'
+   //       );
+   //       const snapshot = await getDocs(cartRef);
+   //       console.log(snapshot);
+   //       if (snapshot.docs.length > 0) {
+   //          snapshot.forEach((doc) => {
+   //             cartData.push({ ...doc.data() });
+   //          });
+   //          setCart(cartData);
+   //       } else {
+   //          console.log('no item in card found');
+   //       }
+   //    };
+   //    fetchCartData();
+   // }, []);
 
    const addToCardHandler = async () => {
       console.log('cart');
-      console.log(product);
-      const existItem = cart.cartItems.find((x) => x.id === product.id);
+      console.log(product.templateId);
 
+      const existItem = cart.cartItems.find(
+         (x) => x.templateId === product.templateId
+      );
+      console.log('existItem', existItem);
       const quantity = existItem ? existItem.quantity + 1 : 1;
-      const productRef = doc(db, 'product', product.id);
-      // const { data } = await axios.get(`/api/products/${product._id}`);
-      console.log(product);
-      const docSnap = await getDoc(productRef);
-      if (docSnap.exists()) {
-         if (docSnap.data().countInStock < quantity) {
+      console.log('userInfo', userInfo);
+      const q = query(
+         collection(db, 'retailProduct'),
+         where('templateId', '==', product.templateId),
+         where('supplierId', '==', userInfo.account.defaultSupplier.id)
+      );
+      const docSnap = await getDocs(q);
+
+      if (docSnap.size === 1) {
+         if (docSnap.docs[0].data().countInStock < quantity) {
             toast('Sorry. Product is out of stock');
             return;
          }
       } else {
-         toast.error('No such document');
+         toast.error('Number of document retuned is incorrect');
       }
 
       ctxDispatch({
          type: 'CARD_ADD_ITEM',
          payload: { ...product, quantity: quantity },
       });
+
       navigate('/cart');
    };
 

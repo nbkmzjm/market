@@ -9,7 +9,14 @@ import MessageBox from '../components/MessageBox';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from 'react-bootstrap/esm/Button';
 import axios from 'axios';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+   collection,
+   doc,
+   getDoc,
+   getDocs,
+   query,
+   where,
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
 
@@ -24,33 +31,21 @@ export default function CartSceen() {
    const updateCartHandler = async (item, quantity) => {
       // const { data } = await axios.get(`/api/products/${item._id}`);
 
-      const productRef = doc(db, 'product', item.id);
+      const q = query(
+         collection(db, 'retailProduct'),
+         where('templateId', '==', item.templateId),
+         where('supplierId', '==', userInfo.account.defaultSupplier.id)
+      );
+      const docSnap = await getDocs(q);
 
-      const docSnap = await getDoc(productRef);
-      if (docSnap.exists()) {
-         // toast(docSnap.data().countInStock);
-         if (docSnap.data().countInStock < quantity) {
+      if (docSnap.size === 1) {
+         if (docSnap.docs[0].data().countInStock < quantity) {
             toast('Sorry. Product is out of stock');
             return;
          }
       } else {
-         toast.error('No such document');
+         toast.error('Number of document retuned is incorrect');
       }
-
-      // await getDoc(productRef).then((docSnap) => {
-      //    if (docSnap.exists()) {
-      //       if (docSnap.data().countInStock < quantity) {
-      //          window.alert('Sorry. Product is out of stock');
-      //          return;
-      //       }
-      //    } else {
-      //       toast.error('No doc found');
-      //    }
-      // });
-      // if (data.countInStock < quantity) {
-      //    window.alert('Sorry. Product is out of stock');
-      //    return;
-      // }
 
       ctxDispatch({
          type: 'CARD_ADD_ITEM',
@@ -89,7 +84,7 @@ export default function CartSceen() {
                ) : (
                   <ListGroup>
                      {cartItems.map((item) => (
-                        <ListGroup.Item key={item._id}>
+                        <ListGroup.Item key={item.templateIdid}>
                            <Row className="align-items-center">
                               <Col md={1}>
                                  <img

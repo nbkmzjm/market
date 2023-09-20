@@ -40,6 +40,7 @@ import TestScreen from './screens/TestScreen';
 function App() {
    const { state, dispatch: ctxDispatch } = useContext(Store);
    const { cart, userInfo } = state;
+   console.log('App.js');
 
    const signOutHandler = () => {
       ctxDispatch({ type: 'USER_SIGNOUT' });

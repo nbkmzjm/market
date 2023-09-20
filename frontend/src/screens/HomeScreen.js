@@ -14,6 +14,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import context from 'react-bootstrap/esm/AccordionContext';
 import { Store } from '../Store';
+import { getAccountProducts } from '../components/Firestore/FSfx';
 
 const reducer = (state, action) => {
    switch (action.type) {
@@ -28,7 +29,7 @@ const reducer = (state, action) => {
 
 export default function HomeScreen() {
    // const [products, setProducts] = useState([]);
-
+   const [productx, setProductx] = useState([]);
    const [{ loading, error, products }, dispatch] = useReducer(
       logger(reducer),
       {
@@ -43,37 +44,19 @@ export default function HomeScreen() {
    console.log('code run 1st');
    useEffect(() => {
       console.log('effect run');
-      const fetchData = async () => {
-         dispatch({ type: 'FETCH_REQUEST' });
-         try {
-            // const result = await axios.get('/api/products');
-            const resultX = await getDocs(collection(db, 'product'));
-
-            const q = query(
-               collection(db, 'retailProduct'),
-               where('supplierId', '==', state.userInfo.account.defaultSup)
-            );
-
-            const result = resultX.docs.map((doc) => ({
-               ...doc.data(),
-               id: doc.id,
-            }));
-
-            console.log(result);
-            dispatch({ type: 'FETCH_SUCCESS', payload: result });
-         } catch (error) {
-            dispatch({ type: 'FETCH_FAIL', payload: getError(error.message) });
-         }
-
-         // setProducts(result.data);
+      const fetchProduct = async () => {
+         console.log('fetch product');
+         await getAccountProducts(
+            state.userInfo.account.defaultSupplier.id,
+            dispatch
+         );
       };
-      fetchData();
+      fetchProduct();
    }, []);
    return (
       <div>
          <h1>Procduct List</h1>
          {console.log('render')}
-         {console.log('Productx', products)}
          <div className="products">
             {loading ? (
                <LoadingBox />
@@ -81,7 +64,7 @@ export default function HomeScreen() {
                <MessageBox variant="danger">{error}</MessageBox>
             ) : (
                <Row>
-                  {console.log('Productx', products)}
+                  {console.log('Productx', productx)}
                   {products.map((product) => (
                      <Col
                         key={product.slug}
@@ -90,7 +73,6 @@ export default function HomeScreen() {
                         lg={3}
                         className="mb-3"
                      >
-                        {' '}
                         <Product product={product}></Product>
                      </Col>
                   ))}

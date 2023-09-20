@@ -65,16 +65,21 @@ export default function OrderDetailScreen() {
                const orderItems = [];
 
                //getting order items from top level collection
-               const q = await query(
-                  collection(db, 'orderItems'),
-                  where('orderId', '==', orderId)
+               const supCollectionRef = collection(
+                  db,
+                  'order',
+                  orderId,
+                  'orderItems'
                );
+
                try {
-                  const querySnapshot = await getDocs(q);
-                  querySnapshot.forEach((doc) => {
-                     orderItems.push(doc.data());
-                     console.log(doc.id, ' => ', doc.data());
-                  });
+                  const querySnapshot = await getDocs(supCollectionRef);
+                  if (querySnapshot.size > 0) {
+                     querySnapshot.forEach((doc) => {
+                        orderItems.push(doc.data());
+                        console.log(doc.id, ' => ', doc.data());
+                     });
+                  }
                   orderDetail.items = orderItems;
                   dispatch({ type: 'FETCH_SUCCESS', payload: orderDetail });
                   console.log(orderDetail);

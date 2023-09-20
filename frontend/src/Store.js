@@ -1,4 +1,16 @@
-import { createContext, useReducer } from 'react';
+import { createContext, useContext, useReducer } from 'react';
+import { db } from './config/firebase';
+import {
+   addDoc,
+   collection,
+   deleteDoc,
+   doc,
+   getDocs,
+   query,
+   setDoc,
+   updateDoc,
+   where,
+} from 'firebase/firestore';
 
 export const Store = createContext();
 
@@ -19,34 +31,151 @@ const initialState = {
       ? JSON.parse(localStorage.getItem('userInfo'))
       : '',
 };
+const updateFSCartItem = async (cartItems, accountId) => {
+   console.log('addCartItem');
 
+   const cartFS = [];
+   const getFScart = async () => {
+      const querySnap = await getDocs(
+         collection(db, 'accounts', accountId, 'cart')
+      );
+      console.log(querySnap);
+      querySnap.forEach(async (doc) => {
+         console.log(doc.data());
+         cartFS.push({
+            templateId: doc.data().templateId,
+            id: doc.id,
+         });
+      });
+   };
+   await getFScart();
+   console.log('cartFS', cartFS);
+   const addCarttoFirestore = async () => {
+      for (const item of cartItems) {
+         const filterItem = cartFS.filter(
+            (cartItemFS) => cartItemFS.templateId === item.templateId
+         );
+         console.log(filterItem);
+         if (filterItem.length > 0) {
+            console.log('updating item', item);
+            const updateItem = {
+               ...item,
+               quantity: item.quantity,
+            };
+            console.log(updateItem);
+            try {
+               const subCollectionRef = doc(
+                  db,
+                  'accounts',
+                  accountId,
+                  'cart',
+                  filterItem[0].id
+               );
+               // const itemUpdateRef = doc(
+               //    subCollectionRef,
+
+               // );
+
+               await updateDoc(subCollectionRef, updateItem);
+            } catch (error) {
+               console.log(error);
+            }
+         } else {
+            const subCollectionRef = collection(
+               db,
+               'accounts',
+               accountId,
+               'cart'
+            );
+            await addDoc(subCollectionRef, item);
+         }
+      }
+   };
+   await addCarttoFirestore();
+};
 function reducer(state, action) {
    switch (action.type) {
       case 'CARD_ADD_ITEM':
          const newItem = action.payload;
 
          const existItem = state.cart.cartItems.find(
-            (item) => item.id === newItem.id
+            (item) => item.templateId === newItem.templateId
          );
+         console.log('existItem', existItem);
 
          const cartItems = existItem
             ? state.cart.cartItems.map((item) =>
-                 item.id === existItem.id ? newItem : item
+                 item.templateId === existItem.templateId ? newItem : item
               )
             : [...state.cart.cartItems, newItem];
+
+         updateFSCartItem(cartItems, state.userInfo.account.accountId);
          localStorage.setItem('cartItems', JSON.stringify(cartItems));
          return { ...state, cart: { ...state.cart, cartItems } };
 
       case 'CARD_REMOVE_ITEM': {
+         console.log('remove Item cart ');
          const cartItems = state.cart.cartItems.filter(
             (item) => item.id !== action.payload.id
          );
+         const removeItemFS = async () => {
+            try {
+               const subCollectionRef = collection(
+                  db,
+                  'accounts',
+                  state.userInfo.account.accountId,
+                  'cart'
+               );
+               const q = query(
+                  subCollectionRef,
+                  where('templateId', '==', action.payload.id)
+               );
+
+               // Execute the query and get a query snapshot
+               const querySnapshot = await getDocs(q);
+               console.log(querySnapshot);
+               if (querySnapshot.size > 0) {
+                  const itemToRemoveId = querySnapshot.docs[0].id;
+                  console.log(itemToRemoveId);
+                  const itemRef = doc(
+                     db,
+                     'accounts',
+                     state.userInfo.account.accountId,
+                     'cart',
+                     itemToRemoveId
+                  );
+                  await deleteDoc(itemRef);
+               }
+            } catch (error) {
+               console.log(error);
+            }
+         };
+         removeItemFS();
+
+         // updateFSCartItem(cartItems, state.userInfo.account.accountId);
+
          localStorage.setItem('cartItems', JSON.stringify(cartItems));
          return { ...state, cart: { ...state.cart, cartItems } };
       }
       case 'USER_SIGNIN': {
-         return { ...state, userInfo: action.payload };
+         console.log('state: ', state.userInfo);
+         console.log('payload: ', action.payload);
+         localStorage.setItem('userInfo', JSON.stringify(action.payload.user));
+         localStorage.setItem('cartItems', JSON.stringify(action.payload.cart));
+         return {
+            ...state,
+            userInfo: action.payload.user,
+            cart: { ...state.cart, cartItems: action.payload.cart },
+         };
       }
+      // case 'FETCH_CART': {
+      //    localStorage.setItem('cartItems', JSON.stringify(action.payload));
+      //    console.log('action.payload')
+      //    return {
+      //       ...state,
+      //       // cart: { ...state.cart, cartItems: action.payload },
+      //    };
+      // }
 
       case 'USER_SIGNOUT':
          return {
@@ -80,9 +209,31 @@ function reducer(state, action) {
 
       case 'ORDER_CREATED': {
          localStorage.setItem('orderDetailId', action.payload);
+         localStorage.setItem('cartItems', []);
+
+         const clearCart = async () => {
+            const collectionRef = collection(
+               db,
+               'accounts',
+               state.userInfo.account.accountId,
+               'cart'
+            );
+            const snapshot = await getDocs(collectionRef);
+            console.log(snapshot);
+            if (snapshot.size > 0) {
+               snapshot.forEach(async (doc) => {
+                  console.log(doc.id);
+                  await deleteDoc(doc.ref);
+               });
+            }
+         };
+
+         clearCart();
+
          return {
             ...state,
             order: { orderCreatedId: action.payload },
+            cart: { ...state.cart, cartItems: [] },
          };
       }
       default:

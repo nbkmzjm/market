@@ -117,13 +117,13 @@ export default function OrderSummnaryScreen() {
                paymentMethod: cart.paymentMethod,
                isPaid: false,
                isDelivered: false,
-               userId: userInfo.uid,
+               userId: userInfo.account.accountId,
 
                itemsPrice: cart.itemsPrice,
                orderTotal: cart.itemsTotal,
                tax: cart.itemsTax,
                shippingCost: cart.shippingCost,
-               supplier: suplier,
+               supplier: userInfo.account.defaultSupplier.id,
             };
 
             transaction.set(doc(db, 'order', orderId), data, {
@@ -134,11 +134,17 @@ export default function OrderSummnaryScreen() {
                const promises = cart.cartItems.map(async (item) => {
                   const itemOrderId = generateOrderID(10000, 99999);
                   console.log(item);
-                  const orderitemRef = doc(db, 'orderItems', itemOrderId);
+                  const orderitemRef = doc(
+                     db,
+                     'order',
+                     orderId,
+                     'orderItems',
+                     itemOrderId
+                  );
                   const orderItemData = {
                      ...item,
                      customerId: userInfo.uid,
-                     supplierId: suplier,
+                     supplierId: userInfo.account.defaultSupplier.id,
                      orderId: orderId,
                      itemId: item.id,
                   };
