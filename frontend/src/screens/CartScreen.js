@@ -27,14 +27,19 @@ export default function CartSceen() {
       cart: { cartItems },
       userInfo,
    } = state;
-
+   const supplierAccountId = userInfo.account.defaultSupplier.id;
    const updateCartHandler = async (item, quantity) => {
       // const { data } = await axios.get(`/api/products/${item._id}`);
 
+      // const q = query(
+      //    collection(db, 'accounts', ''),
+      //    where('productId', '==', item.productId),
+      //    where('supplierId', '==', userInfo.account.defaultSupplier.id)
+      // );
+
       const q = query(
-         collection(db, 'retailProduct'),
-         where('templateId', '==', item.templateId),
-         where('supplierId', '==', userInfo.account.defaultSupplier.id)
+         collection(db, 'accounts', supplierAccountId, 'accountProducts'),
+         where('productId', '==', item.productId)
       );
       const docSnap = await getDocs(q);
 

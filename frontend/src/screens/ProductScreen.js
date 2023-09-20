@@ -46,9 +46,10 @@ export default function ProdcutScreen() {
    console.log(slug);
    console.log('cart:', cart);
    const slugArray = slug.split('~');
-
-   const accountId = state.useInfo.account.accountId;
+   const accountId = state.userInfo.account.accountId;
+   const productSlug = slugArray[0];
    const supplierAccountId = slugArray[1];
+   console.log('supplierId:', supplierAccountId);
 
    const [{ loading, error, product }, dispatch] = useReducer(reducer, {
       product: [],
@@ -66,18 +67,18 @@ export default function ProdcutScreen() {
 
             const q = query(
                collection(db, 'accounts', supplierAccountId, 'accountProducts'),
-               where('slug', '==', slugArray[0])
+               where('slug', '==', productSlug)
             );
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.size === 1) {
                const result = querySnapshot.docs[0].data();
 
-               console.log(result);
                console.log(querySnapshot.docs[0].id);
                dispatch({ type: 'FETCH_SUCCESS', payload: result });
             } else {
                console.log('no product found');
+               throw new Error('No product found');
             }
          } catch (error) {
             dispatch({ type: 'FETCH_FAIL', payload: getError(error) });
@@ -111,7 +112,8 @@ export default function ProdcutScreen() {
 
    const addToCardHandler = async () => {
       console.log('cart');
-      console.log(product.templateId);
+      console.log(product);
+      console.log(accountId);
 
       const existItem = cart.cartItems.find(
          (x) => x.templateId === product.templateId
@@ -120,9 +122,8 @@ export default function ProdcutScreen() {
       const quantity = existItem ? existItem.quantity + 1 : 1;
       console.log('userInfo', userInfo);
       const q = query(
-         collection(db, 'retailProduct'),
-         where('templateId', '==', product.templateId),
-         where('supplierId', '==', userInfo.account.defaultSupplier.id)
+         collection(db, 'accounts', supplierAccountId, 'accountProducts'),
+         where('productId', '==', product.productId)
       );
       const docSnap = await getDocs(q);
 
