@@ -1,17 +1,25 @@
 import { doc, updateDoc } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { db } from '../../config/firebase';
 import { toast } from 'react-toastify';
+import { Store } from '../../Store';
 
 function EditProductModal({ product, showModal, modalClose }) {
+  const { state } = useContext(Store);
+  console.log(state);
+  const accountId = state.userInfo.account.accountId;
   const [show, setShow] = useState();
 
   const [editedProduct, setEditedProduct] = useState(product);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setEditedProduct({ ...editedProduct, [name]: value });
+    const numbericValue = parseFloat(value);
+    setEditedProduct({
+      ...editedProduct,
+      [name]: !isNaN(numbericValue) ? numbericValue : value,
+    });
   };
 
   const handleClose = () => {
@@ -26,9 +34,29 @@ function EditProductModal({ product, showModal, modalClose }) {
 
   // const handleShow = () => setShow(true);
 
-  const handleSave = async () => {
+  const handleSaveTemplate = async () => {
     console.log(editedProduct);
     const productRef = doc(db, 'product', editedProduct.id);
+
+    try {
+      await updateDoc(productRef, editedProduct);
+      toast.success('Product updated successfully');
+      handleClose();
+    } catch (error) {
+      console.log(error.message);
+      toast.error('Cannot update product', error.message);
+    }
+  };
+
+  const handleSave = async () => {
+    console.log(editedProduct);
+    const productRef = doc(
+      db,
+      'accounts',
+      accountId,
+      'accountProducts',
+      editedProduct.id
+    );
 
     try {
       await updateDoc(productRef, editedProduct);
@@ -104,11 +132,31 @@ function EditProductModal({ product, showModal, modalClose }) {
                   />
                 </div>
                 <div className="mb-3">
+                  <label>Cost</label>
+                  <input
+                    type="text"
+                    name="cost"
+                    value={editedProduct.cost}
+                    onChange={handleInputChange}
+                    className="form-control"
+                  />
+                </div>
+                <div className="mb-3">
                   <label>Rating</label>
                   <input
                     type="text"
                     name="ratings"
                     value={editedProduct.ratings}
+                    onChange={handleInputChange}
+                    className="form-control"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label>Stock</label>
+                  <input
+                    type="number"
+                    name="countInStock"
+                    value={editedProduct.countInStock}
                     onChange={handleInputChange}
                     className="form-control"
                   />
@@ -149,9 +197,13 @@ function EditProductModal({ product, showModal, modalClose }) {
           </div>
         </Modal.Body>
         <Modal.Footer>
+          <Button variant="primary" onClick={handleSaveTemplate}>
+            Save Template
+          </Button>
           <Button variant="primary" onClick={handleSave}>
             Save
           </Button>
+
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
