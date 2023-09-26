@@ -82,6 +82,8 @@ export default function SigninScreen() {
                   type: 'USER_SIGNIN',
                   payload: { user: user, cart: cartItems },
                });
+               localStorage.setItem('userInfo', JSON.stringify(user));
+               localStorage.setItem('cartItems', JSON.stringify(cartItems));
 
                navigate(redirect || '/');
             } else {

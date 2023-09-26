@@ -62,6 +62,7 @@ export default function SigninScreen() {
             console.log(userCredential.user.uid);
             const account = {
                businessName: '',
+               accountType: newUser.accountType,
             };
             await addDoc(collection(db, 'accounts'), account).then(
                async (account) => {
@@ -93,7 +94,7 @@ export default function SigninScreen() {
                         console.log(user);
                         ctxDispatch({
                            type: 'USER_SIGNIN',
-                           payload: user,
+                           payload: { user: user },
                         });
                         localStorage.setItem('userInfo', JSON.stringify(user));
                         console.log(userCredential);

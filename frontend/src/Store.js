@@ -29,7 +29,7 @@ const initialState = {
    },
    userInfo: localStorage.getItem('userInfo')
       ? JSON.parse(localStorage.getItem('userInfo'))
-      : '',
+      : null,
 };
 const updateFSCartItem = async (cartItems, accountId) => {
    console.log('addCartItem');
@@ -160,14 +160,22 @@ function reducer(state, action) {
       case 'USER_SIGNIN': {
          console.log('state: ', state.userInfo);
          console.log('payload: ', action.payload);
-         localStorage.setItem('userInfo', JSON.stringify(action.payload.user));
-         localStorage.setItem('cartItems', JSON.stringify(action.payload.cart));
          return {
             ...state,
             userInfo: action.payload.user,
             cart: { ...state.cart, cartItems: action.payload.cart },
          };
       }
+      case 'DEFAULT_SUPPLIER_CHANGE': {
+         console.log('USER: ', action.payload.user);
+         console.log('account: ', action.payload.account);
+         return {
+            ...state,
+            userInfo: action.payload.user,
+            // cart: { ...state.cart, cartItems: action.payload.cart },
+         };
+      }
+
       // case 'FETCH_CART': {
       //    localStorage.setItem('cartItems', JSON.stringify(action.payload));
       //    console.log('action.payload')

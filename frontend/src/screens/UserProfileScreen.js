@@ -10,7 +10,7 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { Container } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Store } from '../Store';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
@@ -25,6 +25,7 @@ export default function UserProfileScreen() {
    const [supplierOption, setSupplierOption] = useState();
    console.log('user', user);
    console.log('account', account);
+   const navigate = useNavigate();
 
    const handleInputChange = (e) => {
       console.log(e.target.key);
@@ -33,8 +34,9 @@ export default function UserProfileScreen() {
    };
    const handleSupplierChange = async (e) => {
       console.log(e.target.value);
+      const supplierAccountId = e.target.value;
       const supplier = supplierOption.find(
-         (item) => item.account.accountId === e.target.value
+         (item) => item.account.accountId === supplierAccountId
       );
       console.log(supplier);
       if (supplier) {
@@ -88,15 +90,16 @@ export default function UserProfileScreen() {
       //       },
       //    },
       // };
-      // console.log(user);
+      console.log(user);
       try {
          await updateDoc(docRef, user);
          await updateDoc(accountRef, account);
          ctxDispatch({
-            type: 'USER_SIGNIN',
-            payload: user,
+            type: 'DEFAULT_SUPPLIER_CHANGE',
+            payload: { user: user, account: account },
          });
          localStorage.setItem('userInfo', JSON.stringify(user));
+         navigate('/');
       } catch (error) {
          console.log(error);
       }
@@ -177,6 +180,7 @@ export default function UserProfileScreen() {
    return (
       <div>
          {' '}
+         \{console.log('render profile screen')}
          {user && account && (
             <Container className="small-container">
                <Helmet>
