@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { getError } from '../utils';
+import InventoryMonitor from '../components/InventoryMonitor';
 
 const reducer = (state, action) => {
    switch (action.type) {
@@ -32,12 +33,18 @@ export default function InventoryScreen() {
    console.log(state);
    const accountId = state.userInfo.account.accountId;
    const [inventory, setInventory] = useState([]);
+   // const [refresh, setRefresh] = useState(false);
 
    const [{ loading, error, products }, dispatch] = useReducer(reducer, {
       product: [],
       loading: true,
       error: '',
    });
+
+   // const handleRefresh = () => {
+   //    console.log('refreshing inventory');
+   //    setRefresh(!refresh);
+   // };
 
    console.log('products', products);
 
@@ -120,7 +127,11 @@ export default function InventoryScreen() {
                   <ul className="list-group list-group-flush">
                      <li key="inventory" className="list-group-item">
                         <div className="row">
-                           <div className="col-4">Name</div>
+                           <div className="col-4">
+                              <InventoryMonitor
+                              // onInventoryUpdate={handleRefresh}
+                              ></InventoryMonitor>
+                           </div>
                            <div className="col-2">Price</div>
                            <div className="col-2">Stock</div>
                            <div className="col-2">Min</div>
