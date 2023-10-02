@@ -12,6 +12,7 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { db } from '../config/firebase';
 import { Store } from '../Store';
+import { roundNumber } from '../functions/calculation';
 
 export default function InventoryMonitor() {
   const { state } = useContext(Store);
@@ -47,7 +48,10 @@ export default function InventoryMonitor() {
           setItem(updatedProduct);
 
           if (updatedProduct.countInStock < updatedProduct.min) {
-            const quantity = (updatedProduct.max - updatedProduct.min) * 0.7;
+            const quantity = roundNumber(
+              (updatedProduct.max - updatedProduct.min) * 0.7,
+              0
+            );
             updatedProduct = { ...updatedProduct, quantity: quantity };
             console.log('updated product:', updatedProduct);
             const updateOrderList = async () => {
@@ -57,15 +61,16 @@ export default function InventoryMonitor() {
                   where('productId', '==', updatedProduct.productId)
                 );
                 const querySnapOderList = await getDocs(q);
-                console.log('snap order list:', querySnapOderList);
+                console.log('snap order list:', querySnapOderList.size);
                 if (querySnapOderList.size > 0) {
-                  console.log('updated');
+                  const exitedProductId = querySnapOderList.docs[0].id;
+                  console.log('exitedProductId:', exitedProductId);
                   const updateProductRef = doc(
                     db,
                     'accounts',
                     accountId,
                     'orderList',
-                    updatedProduct.productId
+                    exitedProductId
                   );
                   await updateDoc(updateProductRef, updatedProduct);
                 } else {

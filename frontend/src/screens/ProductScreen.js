@@ -11,7 +11,7 @@ import Rating from '../Product/Rating';
 import { Helmet } from 'react-helmet-async';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
-import { getError } from '../utils';
+
 import { Store } from '../Store';
 import {
   getDocs,
@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
+import { getError } from '../functions/utils';
 
 const reducer = (state, action) => {
   switch (action.type) {
