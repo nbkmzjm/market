@@ -12,7 +12,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { getError } from '../utils';
+import { getError } from '../functions/utils';
 import InventoryMonitor from '../components/InventoryMonitor';
 
 const reducer = (state, action) => {
