@@ -1,4 +1,12 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore';
 import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { useAccordionButton } from 'react-bootstrap';
 import { db } from '../config/firebase';
@@ -22,6 +30,8 @@ export default function WishListScreen() {
         return { ...state, loading: false, products: action.payload };
       case 'FETCH_FAIL':
         return { ...state, loading: false, error: action.payload };
+      case 'REMOVE_SUCCESS':
+        return { ...state, loading: false, products: action.payload };
     }
   };
   const [{ loading, error, products }, dispatch] = useReducer(reducer, {
@@ -35,7 +45,7 @@ export default function WishListScreen() {
     console.log(product);
 
     const existItem = cart.cartItems.find(
-      (x) => x.templateId === product.productId
+      (x) => x.productId === product.productId
     );
 
     console.log('existItem', existItem);
@@ -71,7 +81,15 @@ export default function WishListScreen() {
     });
   };
 
-  const removeItemHandler = (item) => {};
+  const removeItemHandler = async (product) => {
+    console.log('product', product);
+    try {
+      await deleteDoc(doc(db, 'accounts', accountId, 'orderList', product.id));
+    } catch (error) {
+      console.log(error);
+      toast.error('Product can not be removed from wish List');
+    }
+  };
 
   console.log('products', products);
   useEffect(() => {
@@ -96,7 +114,24 @@ export default function WishListScreen() {
         console.log(error);
       }
     };
-    fetchData();
+    //  fetchData();
+
+    const orderListUpdate = async () => {
+      const orderListRef = collection(db, 'accounts', accountId, 'orderList');
+
+      const unsubscribe = onSnapshot(orderListRef, (querySnapshot) => {
+        const updatedOrderList = [];
+        console.log('querySnapshot:', querySnapshot);
+        querySnapshot.forEach((doc) => {
+          updatedOrderList.push({ ...doc.data(), id: doc.id });
+        });
+        console.log('updatedOrderList', updatedOrderList);
+        dispatch({ type: 'REMOVE_SUCCESS', payload: updatedOrderList });
+      });
+
+      return () => unsubscribe();
+    };
+    orderListUpdate();
   }, []);
   return (
     <div className="container">
@@ -109,7 +144,7 @@ export default function WishListScreen() {
           {' '}
           <div className="card-body">
             <ul className="list-group list-group-flush">
-              <li className="list-group-item">
+              <li key="header" className="list-group-item">
                 <div className="row">
                   <div className="col-4">Description</div>
                   <div className="col-2">Quantity</div>
@@ -119,7 +154,7 @@ export default function WishListScreen() {
                 </div>
               </li>
               {products.map((product) => (
-                <li className="list-group-item">
+                <li key={product.id} className="list-group-item">
                   {' '}
                   <div className="row">
                     <div className="col-4">{product.name}</div>
@@ -144,7 +179,7 @@ export default function WishListScreen() {
                         variant="light"
                         onClick={() => addToCardHandler(product)}
                       >
-                        <i class="fas fa-plus"></i>
+                        <i className="fas fa-plus"></i>
                       </button>
                     </div>
                   </div>{' '}

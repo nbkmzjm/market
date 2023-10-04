@@ -117,7 +117,7 @@ export default function ProdcutScreen() {
     console.log(accountId);
 
     const existItem = cart.cartItems.find(
-      (x) => x.templateId === product.templateId
+      (x) => x.productId === product.productId
     );
     console.log('existItem', existItem);
     const quantity = existItem ? existItem.quantity + 1 : 1;

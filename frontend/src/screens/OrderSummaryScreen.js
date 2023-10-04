@@ -117,13 +117,14 @@ export default function OrderSummnaryScreen() {
           paymentMethod: cart.paymentMethod,
           isPaid: false,
           isDelivered: false,
-          userId: userInfo.account.accountId,
+          accountId: userInfo.account.accountId,
 
           itemsPrice: cart.itemsPrice,
           orderTotal: cart.itemsTotal,
           tax: cart.itemsTax,
           shippingCost: cart.shippingCost,
           supplier: userInfo.account.defaultSupplier.id,
+          userId: userInfo.uid,
         };
 
         transaction.set(doc(db, 'order', orderId), data, {
@@ -143,10 +144,10 @@ export default function OrderSummnaryScreen() {
             );
             const orderItemData = {
               ...item,
-              customerId: userInfo.uid,
+              userId: userInfo.uid,
               supplierId: userInfo.account.defaultSupplier.id,
               orderId: orderId,
-              itemId: item.id,
+              // itemId: item.id,
             };
             await setDoc(orderitemRef, orderItemData);
           });
