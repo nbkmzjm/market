@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux';
-import NewProductForm from './NewProduct/NewProductForm';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import { Link, useNavigate } from 'react-router-dom';
