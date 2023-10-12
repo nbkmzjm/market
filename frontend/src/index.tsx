@@ -1,10 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import store from './store/indexStore';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { HelmetProvider } from 'react-helmet-async';
 import StoreProvider from './Store';

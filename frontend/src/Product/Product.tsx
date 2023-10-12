@@ -1,20 +1,11 @@
-import { useSelector } from 'react-redux';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import Rating from './Rating';
 import { useContext } from 'react';
-import axios from 'axios';
 import { Store } from '../Store';
 import Badge from 'react-bootstrap/esm/Badge';
-import {
-   collection,
-   doc,
-   getDoc,
-   getDocs,
-   query,
-   where,
-} from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
 
