@@ -11,26 +11,28 @@ import {
    updateDoc,
    where,
 } from 'firebase/firestore';
+import { StoreState } from './models/model';
 
-export const Store = createContext();
-
-const initialState = {
+const initialState: StoreState = {
    order: { orderCreatedId: localStorage.getItem('orderDetailId') },
    cart: {
       cartItems: localStorage.getItem('cartItems')
-         ? JSON.parse(localStorage.getItem('cartItems'))
+         ? JSON.parse(localStorage.getItem('cartItems') ?? '[]')
          : [],
       shippingAddress: localStorage.getItem('shippingAddress')
-         ? JSON.parse(localStorage.getItem('shippingAddress'))
+         ? JSON.parse(localStorage.getItem('shippingAddress') ?? '{}')
          : {},
       paymentMethod: localStorage.getItem('paymentMethod')
          ? localStorage.getItem('paymentMethod')
          : '',
    },
    userInfo: localStorage.getItem('userInfo')
-      ? JSON.parse(localStorage.getItem('userInfo'))
-      : null,
+      ? JSON.parse(localStorage.getItem('userInfo') ?? '{}')
+      : {},
 };
+
+export const Store = createContext();
+
 const updateFSCartItem = async (cartItems, accountId) => {
    console.log('addCartItem');
 
@@ -251,8 +253,12 @@ function reducer(state, action) {
    }
 }
 
-export default function StoreProvider(props) {
+interface props {
+   children: JSX.Element | JSX.Element[];
+}
+
+export default function StoreProvider({ children }: props) {
    const [state, dispatch] = useReducer(reducer, initialState);
    const value = { state, dispatch };
-   return <Store.Provider value={value}> {props.children}</Store.Provider>;
+   return <Store.Provider value={{ value }}> {children}</Store.Provider>;
 }

@@ -14,7 +14,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Store } from '../Store';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
-import OptionSelect from '../components/OptionSelect';
 
 export default function UserProfileScreen() {
    const { state, dispatch: ctxDispatch } = useContext(Store);
