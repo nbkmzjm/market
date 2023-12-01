@@ -1,11 +1,11 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useState } from 'react';
 import { Badge, Button, Card } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import Rating from './Rating';
 import { ProductType } from '../../../models/model';
-import useCart from '../../../contexts/CartProvider';
 import useUser from '../../authen/hooks/useUser';
 import { toast } from 'react-toastify';
+import useCart from '../../cart/hooks/useCart';
 
 type PropsType = {
    product: ProductType;
@@ -13,6 +13,7 @@ type PropsType = {
 
 export default function ProductComp({ product }: PropsType): ReactElement {
    const navigate = useNavigate();
+   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
    const {
       dispatch: cartDispatch,
       REDUCER_ACTIONS: CART_ACTIONS,
@@ -70,6 +71,11 @@ export default function ProductComp({ product }: PropsType): ReactElement {
       // navigate('/cart');
    };
 
+   const handlePriceChange = (price: string) => {
+      setSelectedPrice(parseInt(price, 10));
+      console.log(price);
+   };
+
    const content = (
       <Card>
          <Link to={`/product/${product.slug}~${product.accountId}`}>
@@ -88,18 +94,20 @@ export default function ProductComp({ product }: PropsType): ReactElement {
                rating={product.rating}
                numReviews={product.numReviews}
             ></Rating>
-            <select>
+            <select
+               onChange={(e) => handlePriceChange(e.target.value)}
+               // value={selectedPrice || 0}
+            >
                <option value="">Select a vendor</option>
                <option value="">Select a vendor</option>
-               {console.log('product.price', product.price)}
-               {product.price.map((price, index) => (
+               {/* {product.price.map((price, index) => (
                   <option key={index} value={price}>
                      {price}
                   </option>
-               ))}
+               ))} */}
             </select>
             <Card.Text>${product.price}</Card.Text>
-            <Button onClick={() => addToCardHandler(product)}>Add Cart</Button>
+            <Button onClick={() => addToCardHandler()}>Add Cart</Button>
             {/* {product.countInStock > 0 ? (
                <Button onClick={() => addToCardHandler(product)}>
                   Add Cart

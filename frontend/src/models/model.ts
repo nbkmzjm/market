@@ -56,8 +56,7 @@ export type ProductType = {
    id: string;
    image: string;
    name: string;
-   price: number[];
-   quantity: number;
+   price: number;
    ratings: number;
    size: number;
    slug: string;
@@ -88,7 +87,10 @@ export type User = {
    account: {
       accountId: string | null;
       accountType: string | null;
-      defaultSupplier: string | null;
+      defaultSupplier: {
+         id: string | null;
+         name: string | null;
+      };
    };
 };
 

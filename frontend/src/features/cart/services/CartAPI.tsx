@@ -5,9 +5,12 @@ import {
    collection,
    doc,
    getDocs,
+   query,
    updateDoc,
+   where,
 } from 'firebase/firestore';
 import { CartItem } from '../../../models/model';
+import { toast } from 'react-toastify';
 
 export default function CartAPI() {
    const updateCart = async (cartItems: CartItem[], accountId: string) => {
@@ -77,5 +80,43 @@ export default function CartAPI() {
       await addCarttoFirestore();
    };
 
-   return { updateCart };
+   const productInStockCheck = async (
+      quantity: number,
+      supplierAccountId: string,
+      productId: string
+   ): Promise<boolean> => {
+      console.log(quantity, '', supplierAccountId, '', productId);
+      try {
+         const q = query(
+            collection(db, 'accounts', supplierAccountId, 'accountProducts'),
+            where('productId', '==', productId)
+         );
+
+         const docSnap = await getDocs(q);
+         console.log(docSnap.size);
+
+         if (docSnap.size === 1) {
+            const countInStock = docSnap.docs[0].data().countInStock;
+
+            if (countInStock < quantity) {
+               toast.error('Sorry. Product is out of stock');
+               return false;
+            }
+         } else if (docSnap.size === 0) {
+            toast.error('Product is not found with provided Id');
+            throw new Error('Product is not found with provided Id');
+         } else {
+            toast.error('Number of documents returned is incorrect');
+            throw new Error('Number of documents returned is incorrect');
+         }
+
+         return true;
+      } catch (error) {
+         console.error('Error checking product stock:', error);
+         toast.error('An error occurred while checking product stock');
+         return false; // Consider returning true to indicate an error condition
+      }
+   };
+
+   return { updateCart, productInStockCheck };
 }

@@ -45,25 +45,9 @@ export default function UserAPI() {
          const userData = await getDoc(userRef);
 
          if (userData.exists()) {
-            const user: User = {
-               id: userData.id,
-               address: {
-                  street: null,
-                  city: null,
-                  country: null,
-                  postalCode: null,
-                  state: null,
-               },
-               email: userData.data().email,
-               displayName: userData.data().displayName,
-               role: userData.data().role,
-               paymentMethod: null,
-               account: {
-                  accountId: userData.data().account.accountId,
-                  accountType: userData.data().account.accountType,
-                  defaultSupplier: '',
-               },
-            };
+            const user = userData.data() as User;
+            console.log('user UserAPI', user);
+
             setLoading(false);
 
             return user;

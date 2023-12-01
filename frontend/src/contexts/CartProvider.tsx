@@ -5,7 +5,7 @@ import {
    useMemo,
    ReactElement,
 } from 'react';
-import { CartItem, User } from '../models/model';
+import { CartItem, ProductType, User } from '../models/model';
 import { toast } from 'react-toastify';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -36,7 +36,11 @@ export type ReducerActionType = typeof REDUCER_ACTION_TYPE;
 
 export type ReducerAction = {
    type: string;
-   payload: { product?: CartItem; accountId?: string | null };
+   payload: {
+      product: ProductType;
+      accountId?: string | null;
+      quantity: number;
+   };
 };
 
 const reducer = (
@@ -47,10 +51,17 @@ const reducer = (
       case REDUCER_ACTION_TYPE.ADD_CART_ITEM: {
          console.log('Adding cart item');
          if (action.payload.product) {
-            const newItem: CartItem = action.payload.product;
+            let newItem: CartItem = {
+               ...action.payload.product,
+               quantity: 99,
+            };
+            console.log('newItem', newItem);
             const accountId = action.payload.accountId;
+            const quantity = action.payload.quantity;
+            console.log('Account:', accountId);
+            console.log('quantity', action.payload.quantity);
 
-            console.log('action payload:', action.payload);
+            console.log('action payload:', action.payload.product);
 
             const existItem = state.cartItems.find(
                (item) => item.productId === newItem.productId
@@ -84,7 +95,10 @@ const reducer = (
             // }
             localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
             console.log('accountId', accountId);
-            updateCart(updatedCartItems, accountId);
+            if (accountId) {
+               updateCart(updatedCartItems, accountId);
+            }
+
             return { ...state, cartItems: updatedCartItems };
          } else {
             toast.error('action.payload is required');

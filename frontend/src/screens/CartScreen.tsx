@@ -19,43 +19,51 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { toast } from 'react-toastify';
+import { CartItem, ProductType } from '../models/model';
+import useCart from '../contexts/CartProvider';
+import useUser from '../features/authen/hooks/useUser';
+import ProductAPI from '../features/products/services/ProductsAPI';
+import CartAPI from '../features/cart/services/CartAPI';
 
 export default function CartSceen() {
    const navigate = useNavigate();
-   const { state, dispatch: ctxDispatch } = useContext(Store);
-   const {
-      cart: { cartItems },
-      userInfo,
-   } = state;
-   const supplierAccountId = userInfo.account.defaultSupplier.id;
-   const updateCartHandler = async (item, quantity) => {
-      // const { data } = await axios.get(`/api/products/${item._id}`);
-
+   const { user } = useUser();
+   const { cartItems, dispatch, REDUCER_ACTIONS } = useCart();
+   const { fetchProductBySupplierId_Slug, loading, error } = ProductAPI();
+   const { productInStockCheck } = CartAPI();
+   const supplierAccountId = user.account.defaultSupplier.id;
+   const updateCartHandler = async (product: ProductType, quantity: number) => {
       // const q = query(
       //    collection(db, 'accounts', ''),
       //    where('productId', '==', item.productId),
       //    where('supplierId', '==', userInfo.account.defaultSupplier.id)
       // );
+      console.log('quantity clicked: ', quantity);
+      if (product) {
+         if (user) {
+            const inStock = await productInStockCheck(
+               quantity,
+               user.account.defaultSupplier.id,
+               product.productId
+            );
 
-      const q = query(
-         collection(db, 'accounts', supplierAccountId, 'accountProducts'),
-         where('productId', '==', item.productId)
-      );
-      const docSnap = await getDocs(q);
-
-      if (docSnap.size === 1) {
-         if (docSnap.docs[0].data().countInStock < quantity) {
-            toast('Sorry. Product is out of stock');
-            return;
+            if (inStock) {
+               console.log({ ...product });
+               console.log({ ...product, quantity: 2 });
+               console.log(user.account.accountId);
+               dispatch({
+                  type: REDUCER_ACTIONS.ADD_CART_ITEM,
+                  payload: {
+                     product: product,
+                     quantity: quantity,
+                     accountId: user ? user.account.accountId : null,
+                  },
+               });
+            }
          }
       } else {
-         toast.error('Number of document retuned is incorrect');
+         console.log('Product is not loaded');
       }
-
-      ctxDispatch({
-         type: 'CARD_ADD_ITEM',
-         payload: { ...item, quantity: quantity },
-      });
    };
 
    const removeItemHandler = (item) => {
@@ -66,7 +74,7 @@ export default function CartSceen() {
    };
 
    const checkoutHandler = () => {
-      if (!userInfo) {
+      if (!user) {
          navigate('/signin?redirect=/shipping');
       } else {
          navigate('/shipping');
@@ -88,7 +96,7 @@ export default function CartSceen() {
                   </MessageBox>
                ) : (
                   <ListGroup>
-                     {cartItems.map((item) => (
+                     {cartItems.map((item: CartItem) => (
                         <ListGroup.Item key={item.productId}>
                            <Row className="align-items-center">
                               <Col md={1}>
@@ -109,12 +117,13 @@ export default function CartSceen() {
                               <Col md={3}>
                                  <Button
                                     variant="light"
-                                    onClick={() =>
+                                    onClick={() => {
+                                       console.log('item clicked minus', item);
                                        updateCartHandler(
                                           item,
                                           item.quantity - 1
-                                       )
-                                    }
+                                       );
+                                    }}
                                     disabled={item.quantity === 1}
                                  >
                                     <i className="fas fa-minus-circle"></i>
@@ -122,12 +131,13 @@ export default function CartSceen() {
                                  <span> {item.quantity}</span>
                                  <Button
                                     variant="light"
-                                    onClick={() =>
+                                    onClick={() => {
+                                       console.log('item clicked plus', item);
                                        updateCartHandler(
                                           item,
                                           item.quantity + 1
-                                       )
-                                    }
+                                       );
+                                    }}
                                  >
                                     <i className="fas fa-plus-circle"></i>
                                  </Button>

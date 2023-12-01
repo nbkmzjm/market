@@ -8,7 +8,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { toast } from 'react-toastify';
 import useUser from '../../features/authen/hooks/useUser';
-import useCart from '../../contexts/CartProvider';
+import useCart from '../../features/cart/hooks/useCart';
 
 export default function Header() {
    const { state, dispatch: ctxDispatch } = useContext(Store);

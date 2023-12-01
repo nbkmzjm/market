@@ -8,12 +8,9 @@ import { useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { Store } from '../../../Store';
 import { auth, db } from '../../../config/firebase';
 import { getError } from '../../../functions/utils';
 import useUser from '../hooks/useUser';
-import useCart from '../../../contexts/CartProvider';
 import UserAPI from '../services/UserAPI';
 
 export default function SigninScreen() {
@@ -36,12 +33,6 @@ export default function SigninScreen() {
       REDUCER_ACTIONS: USER_ACTIONS,
       user,
    } = useUser();
-
-   const {
-      dispatch: cartDispatch,
-      REDUCER_ACTIONS: CART_ACTIONS,
-      cartItems,
-   } = useCart();
 
    const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
