@@ -7,6 +7,7 @@ export default function HomeScreen() {
    return (
       <div>
          <ProductList></ProductList>
+         Welcome to mac
       </div>
    );
 }
