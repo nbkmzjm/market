@@ -38,7 +38,7 @@ export default function ProductScreen() {
    const { productInStockCheck } = CartAPI();
    const { user } = useUser();
 
-   const quantity = 1;
+   const quantity: number = 1;
 
    useEffect(() => {
       fetchProductBySupplierId_Slug(supplierAccountId, productSlug).then(
@@ -60,8 +60,9 @@ export default function ProductScreen() {
             dispatch({
                type: REDUCER_ACTIONS.ADD_CART_ITEM,
                payload: {
-                  product: { ...product, quantity: quantity },
+                  cartItem: { ...product, quantity: quantity },
                   accountId: user ? user.account.accountId : null,
+                  quantity: quantity,
                },
             });
          }
@@ -137,7 +138,7 @@ export default function ProductScreen() {
                                           onClick={addToCardHandler}
                                           variant="primary"
                                        >
-                                          Add to Card
+                                          Add Card
                                        </Button>
                                     </div>
                                  )}

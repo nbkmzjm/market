@@ -43,10 +43,13 @@ export default function SigninScreen() {
 
             const user = await fetchUser(userCredential.user.uid);
             console.log(user);
-            userDispatch({
-               type: USER_ACTIONS.SIGN_IN,
-               payload: user,
-            });
+            if (user) {
+               userDispatch({
+                  type: USER_ACTIONS.SIGN_IN,
+                  payload: user,
+               });
+            }
+
             localStorage.setItem('userInfo', JSON.stringify(user));
 
             navigate(redirect || '/');

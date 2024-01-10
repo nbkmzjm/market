@@ -11,7 +11,7 @@ export default function ProductList() {
       <>
          {' '}
          <h1>Procduct List</h1>
-         {console.log('render')}
+         {console.log('render product list')}
          <div className="products">
             {loading ? (
                <LoadingBox />

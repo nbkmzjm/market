@@ -63,7 +63,7 @@ header a {
 }
 
 .img-thumbnail {
-   height: 200px;
+   max-height: 50px;
 }
 
 .checkout-steps > div {

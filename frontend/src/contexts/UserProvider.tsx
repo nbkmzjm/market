@@ -10,8 +10,10 @@ import { toast } from 'react-toastify';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
+console.log('init user variable');
+
 type UserStateType = {
-   userInfo: User | null;
+   userInfo: User;
 };
 
 const initUserState: UserStateType = {
@@ -29,7 +31,7 @@ export type ReducerActionType = typeof REDUCER_ACTION_TYPE;
 
 export type ReducerAction = {
    type: string;
-   payload?: User | null;
+   payload: User;
 };
 
 const reducer = (
@@ -66,7 +68,7 @@ const reducer = (
             });
          return {
             ...state,
-            userInfo: null,
+            userInfo: {},
          };
       }
 
@@ -76,6 +78,7 @@ const reducer = (
 };
 
 const useUserContext = (initUserState: UserStateType) => {
+   console.log('init UserContext context');
    const [state, dispatch] = useReducer(reducer, initUserState);
    const user = state.userInfo;
    const REDUCER_ACTIONS = useMemo(() => {

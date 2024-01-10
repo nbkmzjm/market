@@ -6,7 +6,7 @@ import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import HomeScreen from './features/home/pages/HomeScreen';
 import ProductScreen from './features/products/pages/ProductScreen';
 import ProductEditScreen from './screens/ProductEditScreen';
-import CartScreen from './screens/CartScreen';
+import CartScreen from './features/cart/pages/CartScreen';
 import Navbar from 'react-bootstrap/Navbar';
 import Badge from 'react-bootstrap/Badge';
 import Nav from 'react-bootstrap/Nav';
